@@ -1,0 +1,224 @@
+---
+title: "Oficina sobre Mapas"
+author: "Curso-R: Beatriz Milz e Julio Trecenti"
+date: '15/06/2022'
+output: 
+  cleanrmd::html_document_clean:
+    theme: almond
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	cache = TRUE
+)
+```
+
+## Carregar os pacotes
+
+```{r load-packages}
+library(ggplot2)
+```
+
+## Download dos dados
+
+```{r download-data, eval=FALSE, include=TRUE}
+# para criar a pasta de download
+fs::dir_create("dados/")
+
+# URL para baixar
+url_sigbm <- "https://app.anm.gov.br/SIGBM/Publico/ClassificacaoNacionalDaBarragem/ExportarExcel"
+
+# Baixar o  arquivo excel
+httr::POST(url = url_sigbm, httr::write_disk("dados/sigbm.xlsx"))
+```
+
+
+## Importar os dados brutos
+
+```{r}
+sigbm_bruto <- readxl::read_xlsx("dados/sigbm.xlsx", skip = 4)
+```
+
+## Organização
+
+```{r}
+sigbm <- sigbm_bruto |> 
+  janitor::clean_names() |> 
+  dplyr::mutate(
+    lat = parzer::parse_lat(latitude),
+    long = parzer::parse_lon(longitude),
+    .after = longitude
+  )
+```
+
+
+## Objetivo 1: Mapa estático com ggplot2
+
+- Mapa temático do Brasil, por estado, represente a qnt de barragens no estado.
+
+- Fazer a contagem:
+
+```{r}
+quantidade_por_uf <- sigbm |>
+  dplyr::count(uf, name = "qtd_barragens")
+```
+
+- Buscar a delimitação dos estados!
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, comment=FALSE}
+ br_estados <- geobr::read_state(year = 2020)
+# #readr::write_rds(br_estados, "dados/geobr_estados.Rds")
+# #br_estados <- readr::read_rds("dados/geobr_estados.Rds")
+ dplyr::glimpse(br_estados)
+```
+
+
+- Unir a base de estados com a base de quantidade de barragens:
+
+```{r}
+tabela_com_dados_uf <-
+  dplyr::left_join(br_estados, quantidade_por_uf,
+                   by = c("abbrev_state" =  "uf")) |> 
+   sf::st_simplify(dTolerance = 5000) 
+
+dplyr::glimpse(tabela_com_dados_uf)
+```
+
+
+```{r mapa-com-ggplot-1, cache=TRUE, dpi= 600}
+tabela_com_dados_uf |>
+  ggplot() +
+  geom_sf()
+```
+
+Complementando o gráfico: 
+
+```{r mapa-com-ggplot-2, cache = TRUE}
+tabela_com_dados_uf |> 
+  ggplot() +
+  geom_sf(aes(fill = qtd_barragens)) +
+  scale_fill_viridis_c() +
+  labs(fill = "Quantidade de\nBarragens",
+       title = "Quantidade de barragens de mineração por estado no Brasil",
+       caption = "Dados obtidos no SIGBM em 15/06/2022.") +
+  theme_light() 
+  
+```
+
+## Objetivo 2: Mapa de pontos!
+
+```{r}
+library(leaflet)
+sigbm |> 
+  leaflet() |> 
+  #addTiles() |> 
+  addProviderTiles("Esri.WorldImagery") |> 
+  addMarkers(~ long, ~lat,
+             clusterOptions = markerClusterOptions())
+```
+
+
+
+
+# Objetivo 3 - Exemplo para a Tainá! 
+
+- Cria um df com os valores sumarizados:
+
+```{r}
+sigbm_summ <- sigbm |> 
+  dplyr::mutate(
+    volume_atual_m3 = readr::parse_number(
+      volume_atual_m3, 
+      locale = readr::locale(
+        decimal_mark = ",", 
+        grouping_mark = "."
+      )
+    )
+  ) |> 
+  dplyr::group_by(uf) |> 
+  dplyr::summarise(
+    qtd_barragens = dplyr::n(),
+    altura_media = mean(
+      altura_atual_m, na.rm = TRUE
+    ),
+    emergencia = sum(
+      nivel_de_emergencia != "Sem emergência",
+      na.rm = TRUE
+    ),
+    dano_alto = sum(
+      dano_potencial_associado == "Alto", 
+      na.rm = TRUE
+    ),
+    volume = sum(
+      volume_atual_m3, 
+      na.rm = TRUE
+    ) 
+  )
+```
+
+- Criar uma função para gerar um gráfico:
+
+```{r}
+gera_grafico <- function(coluna, titulo) {
+  br_estados |> 
+    dplyr::left_join(
+      sigbm_summ, c("abbrev_state" = "uf")
+    ) |> 
+    sf::st_simplify(dTolerance = 5000) |> 
+    ggplot2::ggplot() +
+    # alternativa:
+    # ggplot2::aes(fill = {{coluna}}) +
+    ggplot2::aes(fill = .data[[coluna]]) +
+    ggplot2::geom_sf() +
+    ggplot2::scale_fill_viridis_c() +
+    ggplot2::labs(
+      title = titulo
+    ) +
+  theme_light() 
+}
+```
+
+
+- Experimentando a função para uma variável:
+
+```{r dpi= 600}
+gera_grafico("dano_alto", "Dano alto!")
+```
+
+- Iterando para várias variáveis e combinando em um gráfico:
+
+```{r dpi= 600}
+lista <- list(
+  "Dano alto!" = "dano_alto",
+  "Emergência!!" = "emergencia",
+  "Altura média!!" = "altura_media",
+  "Volume!!" = "volume"
+)
+
+lista_graficos <- purrr::imap(lista, gera_grafico)
+
+patchwork::wrap_plots(
+  lista_graficos, 
+  ncol = 2
+)
+```
+
+# Dúvida da Laila
+
+- Pacote para buscar a delimitação dos países
+
+```{r dpi= 600}
+library("rnaturalearth")
+library("rnaturalearthdata")
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+
+ggplot(data = world) +
+  geom_sf()
+```
+
+
