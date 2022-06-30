@@ -1,0 +1,14 @@
+on:
+  workflow_dispatch:
+    branches: [main]
+
+name: 01-hello-world
+
+jobs:
+  write-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print-message
+        run: echo "Hello world!"
+  
+    
