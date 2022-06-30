@@ -52,7 +52,7 @@ paste0("- <https://curso-r.github.io/202203-oficina-dsp/slides/", list.files("sl
 ## Scripts utilizados em aula
 
 ```{r results='asis'}
-paste0("- <https://curso-r.github.io/202203-oficina-dsp/oficinas/", list.files("oficinas/"), "/index.html> \n" ) |> writeLines()
+paste0("- <https://github.com/curso-r/202203-oficina-dsp/tree/main/oficinas/", list.files("oficinas/"), "> \n" ) |> writeLines()
 ```
 
 ## Redes sociais da Curso-R

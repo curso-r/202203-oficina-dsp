@@ -1,0 +1,60 @@
+---
+title: "Automatizações"
+subtitle: "Oficina de Data Science na Prática"
+date: "Junho de 2022"
+author: "Curso-R"
+format: 
+  revealjs:
+    width: 1600
+    height: 900
+    self-contained: false
+    incremental: false
+    #logo: "img/logo.png"
+    footer: "Slides feitos pela equipe da [Curso-R](https://curso-r.com), usando [Quarto](https://quarto.org/docs/presentations/revealjs/index.html)."
+    theme: ["custom.scss"]
+    slide-number: c/t
+    show-slide-number: all
+    hash-type: number
+    preview-links: false
+    logo: "img/logo.png"
+  
+editor: visual
+---
+
+## Tópicos de hoje {.center}
+
+-   Importando dados do Google Sheets com o pacote googlesheets4.
+
+-   Relatório com parâmetros: gerando vários relatórios com purrr.
+
+-   Introdução ao GitHub Actions: rodando um script na nuvem.
+
+## Introdução ao GitHub Actions: rodando um script na nuvem.
+
+Material complementar:
+
+-   [Palestra por Beatriz Milz e Julio Trecenti: Introdução ao GitHub Actions](https://beatrizmilz.com/talk/2021-github-actions-gyn/)
+
+-   <https://github.com/skills/hello-github-actions>
+
+-   <https://github.com/actions>
+
+-   <https://github.com/quarto-dev/quarto-actions/tree/main/setup>
+
+-   <https://github.com/actions/setup-python>
+
+## Importando dados do Google Sheets
+
+-   Autenticação interativa e não interativa
+
+Material complementar:
+
+-   [Acessando dados do Google Sheets com R](https://beamilz.com/posts/2022-03-08-googlesheets4/pt/)
+
+## Relatório com parâmetros: gerando vários relatórios com purrr.
+
+-   [Parâmetros em Rmd](https://rmarkdown.rstudio.com/lesson-6.html)
+
+-   [Capítulo 15 - Relatórios parametrizados - RMarkdown: The definitive guide](https://bookdown.org/yihui/rmarkdown/parameterized-reports.html)
+
+-   [Capítulo sobre RMarkdown - R for Data Science](https://r4ds.had.co.nz/r-markdown.html)
