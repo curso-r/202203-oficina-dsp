@@ -31,6 +31,8 @@ Fora do horário de aula ou monitoria:
 
 -   <https://github.com/curso-r/202203-oficina-dsp/tree/main/oficinas/29-06-2022-automatizacao>
 
+  - <https://curso-r.github.io/202203-oficina-dsp/oficinas/29-06-2022-automatizacao/index.html>
+
 ## Redes sociais da Curso-R
 
 Youtube: <https://www.youtube.com/c/CursoR6/featured>
